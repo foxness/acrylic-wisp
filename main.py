@@ -46,15 +46,10 @@ class Layer:
         return sigmoid(np.matmul(self.weights, previous) + self.biases)
 
 class Network:
-    def __init__(self):
-
-        # network architecture
-        # X: o o o
-        #    o o o
-        #    o o o
-        # Y:   o
-
-        self.layers = [Layer(3, 3), Layer(3, 3), Layer(3, 1)]
+    def __init__(self, architecture):
+        self.layers = []
+        for i in range(len(architecture) - 1):
+            self.layers.append(Layer(architecture[i], architecture[i + 1]))
         
     def feedforward(self, X):
         current = X.reshape(-1, 1)
@@ -67,7 +62,13 @@ class Network:
 def main():
     data = generate_data(10)
 
-    network = Network()
+    # network architecture
+    # X: o o o
+    #    o o o
+    #    o o o
+    # Y:   o
+
+    network = Network([3, 3, 3, 1])
     networkY = network.feedforward(data['x'][0])
     print(networkY)
 
