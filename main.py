@@ -17,9 +17,9 @@ def activation(x):
     return sigmoid(x)
 
 def generate_data(n):
-    a = (np.random.rand(n, 1) - 0.5) * 10
-    b = (np.random.rand(n, 1) - 0.5) * 10
-    c = (np.random.rand(n, 1) - 0.5) * 10
+    a = np.random.randn(n, 1)
+    b = np.random.randn(n, 1)
+    c = np.random.randn(n, 1)
 
     X = np.hstack((a, b, c))
     Y = np.array([x[0] + x[1] * x[2] for x in X])
@@ -45,8 +45,8 @@ class Layer:
         self.previous_count = previous_count
         self.count = count
 
-        self.weights = np.random.rand(count, previous_count) - 0.5
-        self.biases = np.random.rand(count, 1) - 0.5
+        self.weights = np.random.randn(count, previous_count)
+        self.biases = np.random.randn(count, 1)
     
     def calculate(self, previous):
         return activation(np.matmul(self.weights, previous) + self.biases)
@@ -69,7 +69,7 @@ class Network:
         Y = self.feedforward(X)
         print('Y: {}, realY: {}'.format(Y, realY))
         pr(Y - realY)
-        return np.square(Y - realY).sum()
+        return ((Y - realY) ** 2).sum()
 
 def main():
     data = generate_data(10)
