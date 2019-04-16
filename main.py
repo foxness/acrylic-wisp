@@ -20,12 +20,6 @@ def generate_data(n):
 
     return {'x': X, 'y': Y}
 
-# network architecture
-# X: o o o
-#    o o o
-#    o o o
-# Y:   o
-
 # class Neuron:
 #     def __init__(self, layer = None, weights = None, bias = None, calculated = None):
 #         self.layer = layer
@@ -45,20 +39,36 @@ class Layer:
         self.previous_count = previous_count
         self.count = count
 
-        self.weights = np.random.rand(count, previous_count)
-        self.biases = np.random.rand(count, 1)
+        self.weights = np.random.rand(count, previous_count) - 0.5
+        self.biases = np.random.rand(count, 1) - 0.5
     
     def calculate(self, previous):
         return sigmoid(np.matmul(self.weights, previous) + self.biases)
 
 class Network:
     def __init__(self):
+
+        # network architecture
+        # X: o o o
+        #    o o o
+        #    o o o
+        # Y:   o
+
         self.layers = [Layer(3, 3), Layer(3, 3), Layer(3, 1)]
         
     def feedforward(self, X):
-        pass
+        current = X.reshape(-1, 1)
+
+        for layer in self.layers:
+            current = layer.calculate(current)
+        
+        return current
 
 def main():
-    pr(generate_data(10))
+    data = generate_data(10)
+
+    network = Network()
+    networkY = network.feedforward(data['x'][0])
+    print(networkY)
 
 main()
