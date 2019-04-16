@@ -7,13 +7,19 @@ np.random.seed(1448)
 def pr(x):
     print(repr(x))
 
+def relu(x):
+    return np.max(0, x)
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+def activation(x):
+    return sigmoid(x)
+
 def generate_data(n):
-    a = (np.random.rand(n, 1) - 0.5) * 100
-    b = (np.random.rand(n, 1) - 0.5) * 100
-    c = (np.random.rand(n, 1) - 0.5) * 100
+    a = (np.random.rand(n, 1) - 0.5) * 10
+    b = (np.random.rand(n, 1) - 0.5) * 10
+    c = (np.random.rand(n, 1) - 0.5) * 10
 
     X = np.hstack((a, b, c))
     Y = np.array([x[0] + x[1] * x[2] for x in X])
@@ -43,7 +49,7 @@ class Layer:
         self.biases = np.random.rand(count, 1) - 0.5
     
     def calculate(self, previous):
-        return sigmoid(np.matmul(self.weights, previous) + self.biases)
+        return activation(np.matmul(self.weights, previous) + self.biases)
 
 class Network:
     def __init__(self, architecture):
@@ -58,6 +64,12 @@ class Network:
             current = layer.calculate(current)
         
         return current
+    
+    def cost(self, X, realY):
+        Y = self.feedforward(X)
+        print('Y: {}, realY: {}'.format(Y, realY))
+        pr(Y - realY)
+        return np.square(Y - realY).sum()
 
 def main():
     data = generate_data(10)
@@ -69,7 +81,7 @@ def main():
     # Y:   o
 
     network = Network([3, 3, 3, 1])
-    networkY = network.feedforward(data['x'][0])
-    print(networkY)
+    costs = [network.cost(data['x'][i], np.array([[data['y'][i]]])) for i in range(len(data['x']))]
+    pr(costs)
 
 main()
