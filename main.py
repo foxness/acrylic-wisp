@@ -8,7 +8,7 @@ def pr(x):
     print(repr(x))
 
 def sigmoid(x):
-    return 1 / (1 + math.exp(-x))
+    return 1 / (1 + np.exp(-x))
 
 def generate_data(n):
     a = (np.random.rand(n, 1) - 0.5) * 100
@@ -26,27 +26,37 @@ def generate_data(n):
 #    o o o
 # Y:   o
 
-class Neuron:
-    def __init__(self, layer = None, weights = None, bias = None, calculated = None):
-        self.layer = layer
-        self.weights = weights
-        self.bias = bias
-        self.calculated = calculated
+# class Neuron:
+#     def __init__(self, layer = None, weights = None, bias = None, calculated = None):
+#         self.layer = layer
+#         self.weights = weights
+#         self.bias = bias
+#         self.calculated = calculated
     
-    def calculate(self):
-        if self.calculated != None:
-            return self.calculated
+#     def calculate(self):
+#         if self.calculated != None:
+#             return self.calculated
         
-        layer = np.array([a.calculate() for a in self.layer])
-        return sigmoid(np.dot(layer, self.weights) + self.bias)
+#         layer = np.array([a.calculate() for a in self.layer])
+#         return sigmoid(np.dot(layer, self.weights) + self.bias)
 
+class Layer:
+    def __init__(self, previous_count, count):
+        self.previous_count = previous_count
+        self.count = count
 
-# class Network:
-#     def __init__(self):
-#         pass
+        self.weights = np.random.rand(count, previous_count)
+        self.biases = np.random.rand(count, 1)
     
-#     def calculate_neuron(a, w, b):
+    def calculate(self, previous):
+        return sigmoid(np.matmul(self.weights, previous) + self.biases)
+
+class Network:
+    def __init__(self):
+        self.layers = [Layer(3, 3), Layer(3, 3), Layer(3, 1)]
         
+    def feedforward(self, X):
+        pass
 
 def main():
     pr(generate_data(10))
