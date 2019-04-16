@@ -1,10 +1,14 @@
 import numpy as np
 import random
+import math
 
 np.random.seed(1448)
 
 def pr(x):
     print(repr(x))
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
 
 def generate_data(n):
     a = (np.random.rand(n, 1) - 0.5) * 100
@@ -21,6 +25,21 @@ def generate_data(n):
 #    o o o
 #    o o o
 # Y:   o
+
+class Neuron:
+    def __init__(self, layer = None, weights = None, bias = None, calculated = None):
+        self.layer = layer
+        self.weights = weights
+        self.bias = bias
+        self.calculated = calculated
+    
+    def calculate(self):
+        if self.calculated != None:
+            return self.calculated
+        
+        layer = np.array([a.calculate() for a in self.layer])
+        return sigmoid(np.dot(layer, self.weights) + self.bias)
+
 
 # class Network:
 #     def __init__(self):
