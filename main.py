@@ -102,20 +102,26 @@ class Network:
         return (output_activations - y)
 
 def main():
-    data = generate_data(10)
+    # data = generate_data(10)
 
-    # network architecture
-    # X: o o o
-    #    o o o
-    #    o o o
-    # Y:   o
+    # # network architecture
+    # # X: o o o
+    # #    o o o
+    # #    o o o
+    # # Y:   o
 
-    network = Network([3, 3, 3, 1])
+    # network = Network([3, 3, 3, 1])
 
-    for i in range(len(data['x'])):
-        X = np.array(data['x'][i]).reshape(-1, 1)
-        Y = np.array(data['y'][i]).reshape(-1, 1)
-        cost = network.cost(X, Y)
-        pr(cost)
+    # for i in range(len(data['x'])):
+    #     X = np.array(data['x'][i]).reshape(-1, 1)
+    #     Y = np.array(data['y'][i]).reshape(-1, 1)
+    #     cost = network.cost(X, Y)
+    #     pr(cost)
+
+    import mnist_loader
+    training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
+
+    network = Network([784, 30, 10])
+    network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 
 main()
