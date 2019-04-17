@@ -1,8 +1,9 @@
 import numpy as np
 import random
 import math
-
-np.random.seed(1448)
+from sklearn.datasets import fetch_openml
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import fetch_openml
 
 def pr(x):
     print(repr(x))
@@ -18,10 +19,15 @@ def generate_data(n):
     b = np.random.randn(n, 1)
     c = np.random.randn(n, 1)
 
-    X = np.hstack((a, b, c))
-    Y = np.array([x[0] + x[1] * x[2] for x in X])
+    X = [x.reshape(3, 1) for x in np.hstack((a, b, c))]
+    Y = [[x[0] + x[1] * x[2]] for x in X]
 
-    return {'x': X, 'y': Y}
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.25, random_state=42)
+    
+    training_data = list(zip(X_train, y_train))
+    test_data = list(zip(X_test, y_test))
+
+    return (training_data, test_data)
 
 class Network:
     def __init__(self, architecture):
@@ -102,26 +108,18 @@ class Network:
         return (output_activations - y)
 
 def main():
-    # data = generate_data(10)
+    np.random.seed(1448)
 
-    # # network architecture
-    # # X: o o o
-    # #    o o o
-    # #    o o o
-    # # Y:   o
+    N = 1000
+    training_data, test_data = generate_data(N)
 
-    # network = Network([3, 3, 3, 1])
+    network = Network([3, 3, 3, 1])
+    network.SGD(training_data, 30, 10, 1.0, test_data = test_data)
 
-    # for i in range(len(data['x'])):
-    #     X = np.array(data['x'][i]).reshape(-1, 1)
-    #     Y = np.array(data['y'][i]).reshape(-1, 1)
-    #     cost = network.cost(X, Y)
-    #     pr(cost)
+    # import mnist_loader
+    # training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 
-    import mnist_loader
-    training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-
-    network = Network([784, 30, 10])
-    network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    # network = Network([784, 8, 8, 10])
+    # network.SGD(training_data, 30, 10, 3.0, test_data = test_data)
 
 main()
