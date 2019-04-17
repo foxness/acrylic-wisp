@@ -6,26 +6,33 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
-seed = 1448
-np.random.seed(seed)
-random.seed(seed)
-
 def get_data():
-    print('hello')
     df = pd.read_csv('covertype')
     data = df.values
 
     x_data = data[:, :-1].astype(np.float32)
     y_data = data[:, -1].reshape(-1, 1)
 
-    np.set_printoptions(suppress=True)
+    # DATA NORMALIZATION
+    # (make every data point be in range [0, 1])
+    for i in range(10):
+        a = x_data[:, i]
+        min_ = a.min()
+        max_ = a.max()
+        interval_ = max_ - min_
+        a -= min_
+        a /= interval_
+
+    # for i, v in enumerate(df.columns.values[:-1]):
+    #     a = x_data[:, i]
+    #     print("{}. {} - max: {} - min: {} - mean: {}".format(i, v, a.max(), a.min(), a.mean()))
+
+    # np.set_printoptions(suppress=True)
     le = OneHotEncoder(sparse=False)
     le.fit(y_data)
+
     y_data = [y.reshape(-1, 1) for y in le.transform(y_data)]
     x_data = [x.reshape(-1, 1) for x in x_data]
-
-    for a, b in zip(df.columns.values, x_data[0]):
-        print("{} : {}".format(a, b))
 
     X_train, X_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.25, random_state=42)
 
@@ -35,16 +42,18 @@ def get_data():
     return (training_data, test_data)
 
 def main():
-    mnist_main()
-    # covertype_main()
+    seed = 1448
+    np.random.seed(seed)
+    random.seed(seed)
+
+    # mnist_main()
+    covertype_main()
 
 def display_data_stats(data):
     print("data point count: {}".format(len(data)))
     
     x, y = data[0]
     print("feature count: {}".format(x.shape[0]))
-    print("x shape: {}".format(repr(x.shape)))
-    print("y shape: {}".format(repr(y.shape)))
 
     a = np.array([a[0] for a in data]).squeeze()
     print("max: {}".format(a.max()))
@@ -54,19 +63,21 @@ def display_data_stats(data):
 def covertype_main():
     training_data, test_data = get_data()
 
-    network = Network([54, 30, 7])
+    display_data_stats(training_data)
+
+    network = Network([54, 12, 8, 7])
     print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
-    network.SGD(training_data, 30, 10, 1.0, test_data = test_data)
+    network.SGD(training_data, 60, 2, 3.0, test_data = test_data)
 
 def mnist_main():
     import mnist_loader
     training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 
-    display_data_stats(training_data)
+    # display_data_stats(training_data)
 
-    # network = Network([784, 30, 10])
-    # print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
-    # network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    network = Network([784, 30, 10])
+    print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
+    network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 
 def pr(x):
     print(repr(x))
@@ -135,7 +146,7 @@ class Network:
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
-        # backward pass
+        
         delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
