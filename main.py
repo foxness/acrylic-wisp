@@ -35,8 +35,21 @@ def get_data():
     return (training_data, test_data)
 
 def main():
-    # mnist_main()
-    covertype_main()
+    mnist_main()
+    # covertype_main()
+
+def display_data_stats(data):
+    print("data point count: {}".format(len(data)))
+    
+    x, y = data[0]
+    print("feature count: {}".format(x.shape[0]))
+    print("x shape: {}".format(repr(x.shape)))
+    print("y shape: {}".format(repr(y.shape)))
+
+    a = np.array([a[0] for a in data]).squeeze()
+    print("max: {}".format(a.max()))
+    print("min: {}".format(a.min()))
+    print("mean: {}".format(a.mean()))
 
 def covertype_main():
     training_data, test_data = get_data()
@@ -49,9 +62,11 @@ def mnist_main():
     import mnist_loader
     training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 
-    network = Network([784, 30, 10])
-    print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
-    network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    display_data_stats(training_data)
+
+    # network = Network([784, 30, 10])
+    # print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
+    # network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 
 def pr(x):
     print(repr(x))
