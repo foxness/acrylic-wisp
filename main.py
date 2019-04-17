@@ -2,7 +2,6 @@ import numpy as np
 import random
 import math
 import pandas as pd
-# from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
@@ -46,8 +45,25 @@ def main():
     np.random.seed(seed)
     random.seed(seed)
 
-    # mnist_main()
-    covertype_main()
+    training_data, test_data = get_data()
+
+    print("\ndata stats:\n")
+    display_data_stats(training_data)
+
+    architecture = [54, 12, 8, 7]
+    epoch_count = 60
+    minibatch_size = 2
+    learning_rate = 1.0
+
+    print("\nnetwork architecture: {}".format(repr(architecture)))
+    print("epoch count: {}".format(epoch_count))
+    print("minibatch size: {}".format(minibatch_size))
+    print("learning rate: {}\n".format(learning_rate))
+
+    network = Network(architecture)
+    print("Score before training: {} / {}".format(network.evaluate(test_data), len(test_data)))
+
+    network.SGD(training_data, epoch_count, minibatch_size, learning_rate, test_data = test_data)
 
 def display_data_stats(data):
     print("data point count: {}".format(len(data)))
@@ -59,25 +75,6 @@ def display_data_stats(data):
     print("max: {}".format(a.max()))
     print("min: {}".format(a.min()))
     print("mean: {}".format(a.mean()))
-
-def covertype_main():
-    training_data, test_data = get_data()
-
-    display_data_stats(training_data)
-
-    network = Network([54, 12, 8, 7])
-    print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
-    network.SGD(training_data, 60, 2, 3.0, test_data = test_data)
-
-def mnist_main():
-    import mnist_loader
-    training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-
-    # display_data_stats(training_data)
-
-    network = Network([784, 30, 10])
-    print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
-    network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 
 def pr(x):
     print(repr(x))
