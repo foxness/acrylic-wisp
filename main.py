@@ -1,9 +1,57 @@
 import numpy as np
 import random
 import math
-from sklearn.datasets import fetch_openml
+import pandas as pd
+# from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import fetch_openml
+from sklearn.preprocessing import OneHotEncoder
+
+seed = 1448
+np.random.seed(seed)
+random.seed(seed)
+
+def get_data():
+    print('hello')
+    df = pd.read_csv('covertype')
+    data = df.values
+
+    x_data = data[:, :-1].astype(np.float32)
+    y_data = data[:, -1].reshape(-1, 1)
+
+    np.set_printoptions(suppress=True)
+    le = OneHotEncoder(sparse=False)
+    le.fit(y_data)
+    y_data = [y.reshape(-1, 1) for y in le.transform(y_data)]
+    x_data = [x.reshape(-1, 1) for x in x_data]
+
+    for a, b in zip(df.columns.values, x_data[0]):
+        print("{} : {}".format(a, b))
+
+    X_train, X_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.25, random_state=42)
+
+    training_data = list(zip(X_train, y_train))
+    test_data = list(zip(X_test, y_test))
+
+    return (training_data, test_data)
+
+def main():
+    # mnist_main()
+    covertype_main()
+
+def covertype_main():
+    training_data, test_data = get_data()
+
+    network = Network([54, 30, 7])
+    print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
+    network.SGD(training_data, 30, 10, 1.0, test_data = test_data)
+
+def mnist_main():
+    import mnist_loader
+    training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
+
+    network = Network([784, 30, 10])
+    print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
+    network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 
 def pr(x):
     print(repr(x))
@@ -13,21 +61,6 @@ def sigmoid(x):
 
 def sigmoid_prime(x):
     return sigmoid(x) * (1 - sigmoid(x))
-
-def generate_data(n):
-    a = np.random.randn(n, 1)
-    b = np.random.randn(n, 1)
-    c = np.random.randn(n, 1)
-
-    X = [x.reshape(3, 1) for x in np.hstack((a, b, c))]
-    Y = [[x[0] + x[1] * x[2]] for x in X]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.25, random_state=42)
-    
-    training_data = list(zip(X_train, y_train))
-    test_data = list(zip(X_test, y_test))
-
-    return (training_data, test_data)
 
 class Network:
     def __init__(self, architecture):
@@ -101,25 +134,10 @@ class Network:
         return (nabla_b, nabla_w)
     
     def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data]
+        test_results = [(np.argmax(self.feedforward(x)), np.argmax(y)) for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivative(self, output_activations, y):
         return (output_activations - y)
-
-def main():
-    np.random.seed(1448)
-
-    N = 1000
-    training_data, test_data = generate_data(N)
-
-    network = Network([3, 3, 3, 1])
-    network.SGD(training_data, 30, 10, 1.0, test_data = test_data)
-
-    # import mnist_loader
-    # training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-
-    # network = Network([784, 8, 8, 10])
-    # network.SGD(training_data, 30, 10, 3.0, test_data = test_data)
 
 main()
