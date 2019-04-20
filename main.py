@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from network import Network
-import torch
+import torch as tr
 
 def get_data():
     df = pd.read_csv('covertype')
@@ -37,32 +37,35 @@ def get_data():
 
 def grad_example(x, i):
     x.requires_grad_(True)
-    ex = torch.exp(x)
+    ex = tr.exp(x)
     sm = ex[i] / ex.sum()
     res = sm.log()
     res.backward()
-    return [res, x.grad]
+    
+    x.requires_grad_(False)
+    grad = x.grad.clone()
+    x.grad.zero_()
+    return [res, grad]
 
 def testy_main():
-    seed = 1448
-    np.random.seed(seed)
-    random.seed(seed)
-
     x = [0., 1, 2, 3]
     i = 2
 
-    x = torch.tensor(x)
+    x = tr.tensor(x)
+    print("x: {}".format(x))
     res, grad = grad_example(x, i)
     print("x: {}\nres: {}\ngrad: {}".format(x, res, grad))
-    
+
     xpg = x + grad
-    res = grad_example(xpg, i)
+    print("\nxpg: {}".format(xpg))
+    res, grad = grad_example(xpg, i)
     print("x + grad: {}\nres: {}".format(xpg, res))
 
 def mnist_main():
     seed = 1448
-    np.random.seed(seed)
+    tr.manual_seed(seed)
     random.seed(seed)
+    print("asd")
 
     import mnist_loader
     training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
@@ -73,6 +76,7 @@ def mnist_main():
 
 def main():
     seed = 1448
+    np.random.seed(seed)
     np.random.seed(seed)
     random.seed(seed)
 
@@ -110,4 +114,4 @@ def display_data_stats(data):
 def pr(x):
     print(repr(x))
 
-testy_main()
+mnist_main()

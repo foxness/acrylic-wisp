@@ -1,85 +1,85 @@
 import numpy as np
 import random
+import torch as tr
 
 def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+    return 1 / (1 + tr.exp(-x))
 
 def sigmoid_prime(x):
     return sigmoid(x) * (1 - sigmoid(x))
+
+def softmax(x):
+    e = tr.exp(x)
+    return e / e.sum()
+
+def get_score_string(correct, total):
+    return "{} / {} ({}%)".format(correct, total, correct * 1.0 / total * 100)
 
 class Network:
     def __init__(self, architecture):
         self.architecture = architecture
         self.layer_count = len(architecture)
-        self.weights = [np.random.randn(count, previous_count) for previous_count, count in zip(self.architecture[:-1], self.architecture[1:])]
-        self.biases = [np.random.randn(count, 1) for count in self.architecture[1:]]
+        self.weights = tr.tensor([tr.randn(count, previous_count) for previous_count, count in zip(self.architecture[:-1], self.architecture[1:])])
+        self.biases = tr.tensor([tr.randn(count, 1) for count in self.architecture[1:]])
+        self.activation_funcs = [sigmoid] * (self.layer_count - 1) # [sigmoid] * (self.layer_count - 2) + [softmax]
         
     def feedforward(self, a):
-        for w, b in zip(self.weights, self.biases):
-            a = sigmoid(np.dot(w, a) + b)
+        for w, b, af in zip(self.weights, self.biases, self.activation_funcs):
+            a = af(tr.mm(w, a) + b)
         return a
     
     def cost(self, x, realY):
         y = self.feedforward(x)
         return ((y - realY) ** 2).sum()
+    
+    def backprop(self, x, y):
+        self.weights.requires_grad_(True)
+        self.biases.requires_grad_(True)
 
-    def SGD(self, training_data, epochs, mini_batch_size, eta, test_data=None):
-        if test_data:
-            n_test = len(test_data)
+        loss = cost(x, y)
 
+        loss.backward()
+
+        self.weights.requires_grad_(False)
+        self.biases.requires_grad_(False)
+
+        nabla_w = self.weights.grad.clone()
+        nabla_b = self.biases.grad.clone()
+
+        self.weights.grad.zero_()
+        self.biases.grad.zero_()
+
+        return [nabla_w, nabla_b]
+    
+    def SGD(self, training_data, epoch_count, batch_size, learning_rate, test_data = None):
         n = len(training_data)
 
-        for j in range(epochs):
+        for j in range(epoch_count):
             random.shuffle(training_data)
 
-            mini_batches = [training_data[k:k+mini_batch_size] for k in range(0, n, mini_batch_size)]
-            for mini_batch in mini_batches:
-                self.update_mini_batch(mini_batch, eta)
+            batches = [training_data[k:k + batch_size] for k in range(0, n, batch_size)]
+            for batch in batches:
+                self.learn_from_batch(batch, learning_rate)
             
             if test_data:
-                print("Epoch {0}: {1} / {2}".format(j, self.evaluate(test_data), n_test))
+                print("Epoch {}: {}".format(j, get_score_string(self.evaluate(test_data), len(test_data))))
             else:
                 print("Epoch {0} complete".format(j))
     
-    def update_mini_batch(self, mini_batch, eta):
-        nabla_b = [np.zeros(b.shape) for b in self.biases]
-        nabla_w = [np.zeros(w.shape) for w in self.weights]
+    def learn_from_batch(self, batch, learning_rate):
+        nabla_w = [tr.zeros(w.shape) for w in self.weights]
+        nabla_b = [tr.zeros(b.shape) for b in self.biases]
 
-        for x, y in mini_batch:
-            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
-            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+        for x, y in batch:
+            delta_nabla_w, delta_nabla_b = self.backprop(x, y)
             nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
         
-        self.weights = [w - (eta / len(mini_batch)) * nw for w, nw in zip(self.weights, nabla_w)]
-        self.biases = [b - (eta / len(mini_batch)) * nb for b, nb in zip(self.biases, nabla_b)]
-    
-    def backprop(self, x, y):
-        nabla_b = [np.zeros(b.shape) for b in self.biases]
-        nabla_w = [np.zeros(w.shape) for w in self.weights]
-
-        activation = x
-        activations = [x]
-        zs = []
-        for b, w in zip(self.biases, self.weights):
-            z = np.dot(w, activation)+b
-            zs.append(z)
-            activation = sigmoid(z)
-            activations.append(activation)
-        
-        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
-        nabla_b[-1] = delta
-        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
-        
-        for l in range(2, self.layer_count):
-            z = zs[-l]
-            sp = sigmoid_prime(z)
-            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
-            nabla_b[-l] = delta
-            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
-        return (nabla_b, nabla_w)
+        self.weights = [w - (learning_rate / len(batch)) * nw for w, nw in zip(self.weights, nabla_w)]
+        self.biases = [b - (learning_rate / len(batch)) * nb for b, nb in zip(self.biases, nabla_b)]
     
     def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedforward(x)), np.argmax(y)) for (x, y) in test_data]
+        test_results = [(tr.argmax(self.feedforward(x)), tr.argmax(y)) for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivative(self, output_activations, y):
