@@ -25,7 +25,9 @@ class Network:
         
     def feedforward(self, a):
         for w, b, af in zip(self.weights, self.biases, self.activation_funcs):
+            print("w: {}, a: {}".format(w.shape, a.shape))
             a = af(tr.mm(w, a) + b)
+        print()
         return a
     
     def cost(self, x, realY):
@@ -84,6 +86,3 @@ class Network:
     def evaluate(self, test_data):
         test_results = [(tr.argmax(self.feedforward(x)), tr.argmax(y)) for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
-
-    def cost_derivative(self, output_activations, y):
-        return (output_activations - y)

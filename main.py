@@ -71,7 +71,7 @@ def mnist_main():
     training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 
     network = Network([784, 30, 10])
-    print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
+    # print("Before training evaluation: {} / {}".format(network.evaluate(test_data), len(test_data)))
     network.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 
 def main():
