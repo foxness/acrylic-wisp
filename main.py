@@ -41,12 +41,23 @@ def grad_example(x, i):
     sm = ex[i] / ex.sum()
     res = sm.log()
     res.backward()
-    print(x.grad)
+    return [res, x.grad]
 
 def testy_main():
     seed = 1448
     np.random.seed(seed)
     random.seed(seed)
+
+    x = [0., 1, 2, 3]
+    i = 2
+
+    x = torch.tensor(x)
+    res, grad = grad_example(x, i)
+    print("x: {}\nres: {}\ngrad: {}".format(x, res, grad))
+    
+    xpg = x + grad
+    res = grad_example(xpg, i)
+    print("x + grad: {}\nres: {}".format(xpg, res))
 
 def mnist_main():
     seed = 1448
