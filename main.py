@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from network import Network
+import torch
 
 def get_data():
     df = pd.read_csv('covertype')
@@ -33,6 +34,19 @@ def get_data():
     test_data = list(zip(X_test, y_test))
 
     return (training_data, test_data)
+
+def grad_example(x, i):
+    x.requires_grad_(True)
+    ex = torch.exp(x)
+    sm = ex[i] / ex.sum()
+    res = sm.log()
+    res.backward()
+    print(x.grad)
+
+def testy_main():
+    seed = 1448
+    np.random.seed(seed)
+    random.seed(seed)
 
 def mnist_main():
     seed = 1448
@@ -85,4 +99,4 @@ def display_data_stats(data):
 def pr(x):
     print(repr(x))
 
-mnist_main()
+testy_main()
