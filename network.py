@@ -25,9 +25,15 @@ class Network:
         
     def feedforward(self, a):
         for w, b, af in zip(self.weights, self.biases, self.activation_funcs):
-            print("w: {}, a: {}".format(w.shape, a.shape))
+            
+
+            # wshape = w.shape
+            # ashape = a.shape
+            # result = tr.mm(w, a)
+            # resultshape = result.shape
+
+            # print("w: {}, a: {}, w * a: {}, w * a + b: {}, s(w * a + b): {}".format(w.shape, a.shape, tr.mm(w, a).shape, (tr.mm(w, a) + b).shape, sigmoid(tr.mm(w, a) + b).shape))
             a = af(tr.mm(w, a) + b)
-        print()
         return a
     
     def cost(self, x, realY):
@@ -40,21 +46,20 @@ class Network:
             b.requires_grad_(True)
 
         loss = self.cost(x, y)
-
         loss.backward()
 
         for w, b in zip(self.weights, self.biases):
             w.requires_grad_(False)
             b.requires_grad_(False)
 
-        nabla_w = [w.grad.clone() for w in self.weights]
-        nabla_b = [b.grad.clone() for b in self.weights]
+        # nabla_w = [w.grad.clone() for w in self.weights]
+        # nabla_b = [b.grad.clone() for b in self.weights]
 
-        for w, b in zip(self.weights, self.biases):
-            w.grad.zero_()
-            b.grad.zero_()
+        # for w, b in zip(self.weights, self.biases):
+        #     w.grad.zero_()
+        #     b.grad.zero_()
 
-        return [nabla_w, nabla_b]
+        # return [nabla_w, nabla_b]
     
     def SGD(self, training_data, epoch_count, batch_size, learning_rate, test_data = None):
         n = len(training_data)
@@ -76,12 +81,15 @@ class Network:
         nabla_b = [tr.zeros(b.shape) for b in self.biases]
 
         for x, y in batch:
-            delta_nabla_w, delta_nabla_b = self.backprop(x, y)
-            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
-            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+            self.backprop(x, y)
+
+        for i in range(len(self.weights)):
+            self.weights[i] -= (learning_rate / len(batch)) * self.weights[i].grad
+            self.biases[i] -= (learning_rate / len(batch)) * self.biases[i].grad
         
-        self.weights = [w - (learning_rate / len(batch)) * nw for w, nw in zip(self.weights, nabla_w)]
-        self.biases = [b - (learning_rate / len(batch)) * nb for b, nb in zip(self.biases, nabla_b)]
+        for i in range(len(self.weights)):
+            self.weights[i].grad.zero_()
+            self.biases[i].grad.zero_()
     
     def evaluate(self, test_data):
         test_results = [(tr.argmax(self.feedforward(x)), tr.argmax(y)) for (x, y) in test_data]
