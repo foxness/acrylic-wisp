@@ -19,8 +19,8 @@ class Network:
     def __init__(self, architecture):
         self.architecture = architecture
         self.layer_count = len(architecture)
-        self.weights = tr.tensor([tr.randn(count, previous_count) for previous_count, count in zip(self.architecture[:-1], self.architecture[1:])])
-        self.biases = tr.tensor([tr.randn(count, 1) for count in self.architecture[1:]])
+        self.weights = [tr.randn(count, previous_count) for previous_count, count in zip(self.architecture[:-1], self.architecture[1:])]
+        self.biases = [tr.randn(count, 1) for count in self.architecture[1:]]
         self.activation_funcs = [sigmoid] * (self.layer_count - 1) # [sigmoid] * (self.layer_count - 2) + [softmax]
         
     def feedforward(self, a):
@@ -33,21 +33,24 @@ class Network:
         return ((y - realY) ** 2).sum()
     
     def backprop(self, x, y):
-        self.weights.requires_grad_(True)
-        self.biases.requires_grad_(True)
+        for w, b in zip(self.weights, self.biases):
+            w.requires_grad_(True)
+            b.requires_grad_(True)
 
-        loss = cost(x, y)
+        loss = self.cost(x, y)
 
         loss.backward()
 
-        self.weights.requires_grad_(False)
-        self.biases.requires_grad_(False)
+        for w, b in zip(self.weights, self.biases):
+            w.requires_grad_(False)
+            b.requires_grad_(False)
 
-        nabla_w = self.weights.grad.clone()
-        nabla_b = self.biases.grad.clone()
+        nabla_w = [w.grad.clone() for w in self.weights]
+        nabla_b = [b.grad.clone() for b in self.weights]
 
-        self.weights.grad.zero_()
-        self.biases.grad.zero_()
+        for w, b in zip(self.weights, self.biases):
+            w.grad.zero_()
+            b.grad.zero_()
 
         return [nabla_w, nabla_b]
     
